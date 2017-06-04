@@ -8,7 +8,7 @@ Many of us prefer Promises over callbacks.<br>
 Prior to ES6, we relied upon polyfill libraries (ex: [Q](https://github.com/kriskowal/q), [Bluebird](https://github.com/petkaantonov/bluebird), etc).<br>
 Now that ES6 is (mostly) supported, native Promises are available.
 
-This small library uses ES6 features to "denodeify" Functions that obeys Node.js conventions.
+This small library uses ES6 features to "denodeify" functions that obeys Node.js conventions.<br>
 The module includes two functions:
   * `denodeify`
   * `denodeify_net_request`
@@ -32,7 +32,7 @@ npm install --save @warren-bank/node-denodeify
   * {Proxy}
 * Characteristics of Function:
   * last input parameter is a callback `function(error, result)`
-* Changes to signature of Function:
+* Changes to signature of Function (via the Proxy):
   * input:
     * the last parameter (callback function) is removed
   * output: Promise
@@ -55,7 +55,7 @@ npm install --save @warren-bank/node-denodeify
     * input: `(ResponseObject)`
   * Request object is a writable stream
   * Response object is a readable stream
-* Changes to Signature of Function:
+* Changes to signature of Function (via the Proxy):
   * input: `(options[, PostData])`
     * acceptable formats of `PostData`:
       * string (ex: `'a=1&b-2'`)
