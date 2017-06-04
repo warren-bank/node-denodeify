@@ -2,4 +2,4 @@
 
 log='./run.log'
 
-./js/01.js &> "$log"
+./js/02.js &> "$log"
