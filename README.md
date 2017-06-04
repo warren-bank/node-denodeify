@@ -13,6 +13,14 @@ The module includes two functions:
   * `denodeify`
   * `denodeify_net_request`
 
+#### Installation:
+
+```bash
+npm install --save @warren-bank/node-denodeify
+```
+
+#### API:
+
 `proxy = denodeify(function)`:
 * Summary:
   * accepts a Function and returns a Proxy
@@ -25,8 +33,9 @@ The module includes two functions:
 * Characteristics of Function:
   * last input parameter is a callback `function(error, result)`
 * Changes to signature of Function:
-  * the last input parameter is removed
-  * returns a Promise
+  * input:
+    * the last parameter (callback function) is removed
+  * output: Promise
 
 `proxy = denodeify_net_request(function)`:
 * Summary:
@@ -39,23 +48,19 @@ The module includes two functions:
   * {Proxy}
 * Characteristics of Function:
   * makes a network request
-    * returns a Request object
-    * last input parameter is a callback `function(Response object)`
+  * Signature of Function:
+    * input: `(options[, callback])`
+    * output: Request object
+  * Signature of callback:
+    * input: `(ResponseObject)`
   * Request object is a writable stream
   * Response object is a readable stream
 * Changes to Signature of Function:
-  * the last input parameter is replaced:
-    * callback function is removed
-    * (optional) POST data is added; accepts either format:
-      * string (ex: 'a=1&b-2')
-      * object (ex: {a:1,b:2})
-  * returns a Promise
-
-#### Installation:
-
-```bash
-npm install --save @warren-bank/node-denodeify
-```
+  * input: `(options[, PostData])`
+    * acceptable formats of `PostData`:
+      * string (ex: `'a=1&b-2'`)
+      * object (ex: `{a:1,b:2}`)
+  * output: Promise
 
 #### Example:
 
@@ -63,8 +68,20 @@ npm install --save @warren-bank/node-denodeify
 const {denodeify, denodeify_net_request} = require('@warren-bank/node-denodeify')
 
 const fs = {
-  readFile: denodeify( require('fs').readFile )
+  readFile: denodeify( require('fs').readFile ),
+  writeFile: denodeify( require('fs').writeFile )
 }
+
+const http = {
+  get: denodeify_net_request( require('http').get ),
+  request: denodeify_net_request( require('http').request )
+}
+
+const https = {
+  get: denodeify_net_request( require('https').get ),
+  request: denodeify_net_request( require('https').request )
+}
+
 fs.readFile('/etc/hosts', 'utf8')
 .then((data) => {
   console.log('passwd:', data)
@@ -73,9 +90,6 @@ fs.readFile('/etc/hosts', 'utf8')
   console.log('Error:', error.message)
 })
 
-const http = {
-  get: denodeify_net_request( require('http').get )
-}
 http.get('http://nodejs.org/dist/index.json')
 .then((data) => {
   var all_releases, newest_release
