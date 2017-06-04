@@ -117,6 +117,7 @@ const log = function(){
   console.log(args)
 }
 
+// example: read a file, then display its data
 fs.readFile('/etc/hosts', 'utf8')
 .then((data) => {
   log(sep.L, '"hosts" file contents:', sep.R, data)
@@ -125,6 +126,7 @@ fs.readFile('/etc/hosts', 'utf8')
   log(sep.L, 'Error:', sep.R, error.message)
 })
 
+// example: download a file, parse its JSON data, cherry pick the first object in a large array, then display the value of a particular key
 http.get('http://nodejs.org/dist/index.json')
 .then((data) => {
   var all_releases, newest_release
@@ -136,6 +138,7 @@ http.get('http://nodejs.org/dist/index.json')
   log(sep.L, 'Error:', sep.R, error.message)
 })
 
+// example: request to download a file that doesn't exist, allow the default status code validation method to throw an Error, display the status code in the server Response
 http.get('http://nodejs.org/i.dont.exist/404')
 .then((data) => {
   log(sep.L, 'imaginary URL contents:', sep.R, data)
@@ -144,6 +147,7 @@ http.get('http://nodejs.org/i.dont.exist/404')
   log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
 })
 
+// example: request to download a file that doesn't exist, disable status code validation, display the (HTML) data in the server Response
 http.get('http://nodejs.org/i.dont.exist/404', '', {validate_status_code: false})
 .then((data) => {
   log(sep.L, 'imaginary URL contents:', sep.R, data)
@@ -152,7 +156,7 @@ http.get('http://nodejs.org/i.dont.exist/404', '', {validate_status_code: false}
   log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
 })
 
-// make a GET request, then follow all redirects
+// example: make a GET request, then follow all redirects
 const make_net_request = function(url){
   var regex, proto
   regex = /^https/i
