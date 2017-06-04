@@ -53,30 +53,49 @@ const denodeify = function(fwcb, ctx){
  *   - returns a Promise
  * @param {Function} fwcb    function with callback
  * @param {Object} ctx       'this' context
+ * @param {Object} opts      user-configurable options (with sane default values)
  * @return {Proxy}
  */
-const denodeify_net_request = function(fwcb, ctx){
+const denodeify_net_request = function(fwcb, ctx, opts){
   var handler, proxy
   handler = {
     apply(_fwcb, _ctx, _args){
       return new Promise((resolve, reject) => {
         var cb, args
+        var configs = Object.assign({}, {
+          // default user-configurable option values
+          validate_status_code: function(code){
+            var error
+            if (code !== 200){
+              error = new Error(`HTTP response status code: ${code}`)
+              error.statusCode = code
+              throw error
+            }
+          }
+        }, opts)
         var req
-        var [options, POST_data] = _args
-        if (typeof options === 'string'){
-          options = url.parse(options)
+        var [req_options, POST_data] = _args
+        if (typeof req_options === 'string'){
+          req_options = url.parse(req_options)
         }
         if (typeof POST_data === 'object'){
           POST_data = querystring.stringify(POST_data)
         }
         var data=''
         cb = function(res){
-          if (res.statusCode !== 200){ return reject(new Error(`HTTP response status code: ${res.statusCode}`)) }
+          if (typeof configs.validate_status_code === 'function'){
+            try {
+              configs.validate_status_code(res.statusCode)
+            }
+            catch (error){
+              return reject(error)
+            }
+          }
           res.setEncoding('utf8')
           res.on('data', (chunk) => { data += chunk })
           res.on('end', () => { resolve(data) })
         }
-        args = [options, cb]
+        args = [req_options, cb]
         try {
           req = Reflect.apply(fwcb, (ctx || _ctx || null), args)
           req.on('error', (error) => { reject(error) })

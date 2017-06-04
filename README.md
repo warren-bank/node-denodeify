@@ -43,7 +43,20 @@ npm install --save @warren-bank/node-denodeify
   * when the Proxy is called, a Promise is returned
 * Input parameters:
   * {Function} required
-  * {Object} optional: 'this' context for calls to Function
+  * {Object} optional: `this` context for calls to Function
+  * {Object} optional: user-configurable options (with sane defaults)
+    * {Function || falsy} `validate_status_code`
+      * input: {number} `code`
+      * example:
+        * `{ validate_status_code: function(code){} }`
+        * `{ validate_status_code: false }`
+      * default value:
+        * {Function}
+          * throws `Error` if `code` is not 200
+          * error.statusCode = code
+      * notes:
+        * a falsy {non-Function} value disables the option
+        * `Error` thrown in function is caught and passed to the Promise
 * Return value:
   * {Proxy}
 * Characteristics of Function:
@@ -88,12 +101,19 @@ const sep = {
   get R(){return "\n" + this.div + "\n"}
 }
 
+const log = function(){
+  var args
+  args = [...arguments, "\n"]
+  args = args.join('')
+  console.log(args)
+}
+
 fs.readFile('/etc/hosts', 'utf8')
 .then((data) => {
-  console.log([sep.L, '"hosts" file contents:', sep.R, data].join(''))
+  log(sep.L, '"hosts" file contents:', sep.R, data)
 })
 .catch((error) => {
-  console.log([sep.L, 'Error:', sep.R, error.message].join(''))
+  log(sep.L, 'Error:', sep.R, error.message)
 })
 
 http.get('http://nodejs.org/dist/index.json')
@@ -101,10 +121,18 @@ http.get('http://nodejs.org/dist/index.json')
   var all_releases, newest_release
   all_releases = JSON.parse(data)
   newest_release = all_releases.length ? all_releases[0] : {}
-  console.log([sep.L, 'newest release of Node.js:', sep.R, newest_release.version].join(''))
+  log(sep.L, 'newest release of Node.js:', sep.R, newest_release.version)
 })
 .catch((error) => {
-  console.log([sep.L, 'Error:', sep.R, error.message].join(''))
+  log(sep.L, 'Error:', sep.R, error.message)
+})
+
+http.get('http://nodejs.org/i.dont.exist/404')
+.then((data) => {
+  log(sep.L, 'imaginary URL contents:', sep.R, data)
+})
+.catch((error) => {
+  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
 })
 ```
 
