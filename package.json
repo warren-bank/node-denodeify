@@ -1,0 +1,14 @@
+{
+  "name": "@warren-bank/node-denodeify",
+  "version": "1.0.0",
+  "main": "denodeify.js",
+  "description": "wrap Function with Proxy, call returns Promise",
+  "author": "Warren Bank (https://github.com/warren-bank)",
+  "license": "GPL-2.0",
+  "dependencies": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/warren-bank/node-denodeify"
+  }
+}
