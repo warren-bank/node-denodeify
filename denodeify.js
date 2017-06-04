@@ -41,46 +41,55 @@ const denodeify = function(fwcb, ctx){
  * Characteristics of Function:
  *   - makes a network request
  *     - returns a Request object
- *     - final input parameter is a callback function(ResponseObject)
+ *   - Signature:
+ *     - (RequestOptions, callback)
+ *     - Signature of callback function: (ResponseObject)
  *   - Request object is a writable stream
  *   - Response object is a readable stream
  * Changes to Signature of Function:
- *   - replace the final input parameter:
- *     - remove callback function
- *     - add (optional) PostData
+ *   - Signature:
+ *     - (RequestOptions, PostData, ConfigOptions)
+ *     - format of PostData:
  *       - string (ex: 'a=1&b-2')
  *       - object (ex: {a:1,b:2})
+ *     - format of ConfigOptions:
+ *       - object: {
+ *           validate_status_code: function(code) // or falsy
+ *         }
  *   - returns a Promise
  * @param {Function} fwcb    function with callback
  * @param {Object} ctx       'this' context
- * @param {Object} opts      user-configurable options (with sane default values)
  * @return {Proxy}
  */
-const denodeify_net_request = function(fwcb, ctx, opts){
+const denodeify_net_request = function(fwcb, ctx){
   var handler, proxy
   handler = {
     apply(_fwcb, _ctx, _args){
       return new Promise((resolve, reject) => {
         var cb, args
-        var configs = Object.assign({}, {
-          // default user-configurable option values
-          validate_status_code: function(code){
-            var error
-            if (code !== 200){
-              error = new Error(`HTTP response status code: ${code}`)
-              error.statusCode = code
-              throw error
-            }
-          }
-        }, opts)
         var req
-        var [req_options, POST_data] = _args
+        var [req_options, POST_data='', config_options={}] = _args
         if (typeof req_options === 'string'){
           req_options = url.parse(req_options)
         }
         if (typeof POST_data === 'object'){
           POST_data = querystring.stringify(POST_data)
         }
+        var configs = Object.assign(
+          {},
+          {
+            // default user-configurable option values
+            validate_status_code: function(code){
+              var error
+              if (code !== 200){
+                error = new Error(`HTTP response status code: ${code}`)
+                error.statusCode = code
+                throw error
+              }
+            }
+          },
+          config_options
+        )
         var data=''
         cb = function(res){
           if (typeof configs.validate_status_code === 'function'){

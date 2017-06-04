@@ -13,13 +13,25 @@ ff02::2 ip6-allrouters
 
 
 ---------------------------------------
-newest release of Node.js:
+imaginary URL contents:
 ---------------------------------------
-v8.0.0
+<html>
+<head><title>301 Moved Permanently</title></head>
+<body bgcolor="white">
+<center><h1>301 Moved Permanently</h1></center>
+<hr><center>nginx</center>
+</body>
+</html>
+
 
 ---------------------------------------
 Error:
 ---------------------------------------
 HTTP response status code: 301
 error.statusCode === 301
+
+---------------------------------------
+newest release of Node.js:
+---------------------------------------
+v8.0.0
 

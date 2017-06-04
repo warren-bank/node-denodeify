@@ -44,35 +44,41 @@ npm install --save @warren-bank/node-denodeify
 * Input parameters:
   * {Function} required
   * {Object} optional: `this` context for calls to Function
-  * {Object} optional: user-configurable options (with sane defaults)
-    * {Function || falsy} `validate_status_code`
-      * input: {number} `code`
-      * example:
-        * `{ validate_status_code: function(code){} }`
-        * `{ validate_status_code: false }`
-      * default value:
-        * {Function}
-          * throws `Error` if `code` is not 200
-          * error.statusCode = code
-      * notes:
-        * a falsy {non-Function} value disables the option
-        * `Error` thrown in function is caught and passed to the Promise
 * Return value:
   * {Proxy}
 * Characteristics of Function:
   * makes a network request
   * Signature of Function:
-    * input: `(options[, callback])`
+    * input: `(RequestOptions[, callback])`
     * output: Request object
   * Signature of callback:
     * input: `(ResponseObject)`
   * Request object is a writable stream
   * Response object is a readable stream
 * Changes to signature of Function (via the Proxy):
-  * input: `(options[, PostData])`
-    * acceptable formats of `PostData`:
-      * string (ex: `'a=1&b-2'`)
-      * object (ex: `{a:1,b:2}`)
+  * input: `(RequestOptions[, PostData, configs])`
+    * `PostData`
+      * key/value pairs written to Request object
+      * acceptable formats:
+        * string (ex: `'a=1&b-2'`)
+        * object (ex: `{a:1,b:2}`)
+    * `configs`
+      * user-configurable options (with sane defaults)
+      * acceptable format: {Object}
+      * keys:
+        * `validate_status_code`
+          * type: {Function}
+          * input: {number} `code`
+          * example:
+            * `{ validate_status_code: function(code){} }`
+            * `{ validate_status_code: false }`
+          * default value:
+            * {Function}
+              * throws `Error` if `code` is not 200
+              * error.statusCode = code
+          * notes:
+            * `Error` thrown in function is caught and passed to the Promise
+            * a falsy {non-Function} value disables the option
   * output: Promise
 
 #### Example:
@@ -128,6 +134,14 @@ http.get('http://nodejs.org/dist/index.json')
 })
 
 http.get('http://nodejs.org/i.dont.exist/404')
+.then((data) => {
+  log(sep.L, 'imaginary URL contents:', sep.R, data)
+})
+.catch((error) => {
+  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
+})
+
+http.get('http://nodejs.org/i.dont.exist/404', '', {validate_status_code: false})
 .then((data) => {
   log(sep.L, 'imaginary URL contents:', sep.R, data)
 })
