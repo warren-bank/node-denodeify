@@ -17,14 +17,18 @@ const https = {
   request: denodeify_net_request( require('https').request )
 }
 
-const sep = "\n" + Array(40).join('-') + "\n"
+const sep = {
+  div: Array(40).join('-'),
+  get L(){return this.div + "\n"},
+  get R(){return "\n" + this.div + "\n"}
+}
 
 fs.readFile('/etc/hosts', 'utf8')
 .then((data) => {
-  console.log([sep, '"hosts" file contents:', sep, data].join(''))
+  console.log([sep.L, '"hosts" file contents:', sep.R, data].join(''))
 })
 .catch((error) => {
-  console.log([sep, 'Error:', sep, error.message].join())
+  console.log([sep.L, 'Error:', sep.R, error.message].join(''))
 })
 
 http.get('http://nodejs.org/dist/index.json')
@@ -32,8 +36,8 @@ http.get('http://nodejs.org/dist/index.json')
   var all_releases, newest_release
   all_releases = JSON.parse(data)
   newest_release = all_releases.length ? all_releases[0] : {}
-  console.log([sep, 'newest release of Node.js:', sep, newest_release.version].join(''))
+  console.log([sep.L, 'newest release of Node.js:', sep.R, newest_release.version].join(''))
 })
 .catch((error) => {
-  console.log([sep, 'Error:', sep, error.message].join(''))
+  console.log([sep.L, 'Error:', sep.R, error.message].join(''))
 })
