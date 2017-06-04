@@ -71,7 +71,7 @@ const denodeify_net_request = function(fwcb, ctx){
         }
         var data=''
         cb = function(res){
-          if (res.statusCode !== 200){ reject(new Error(`HTTP response status code: ${res.statusCode}`)) }
+          if (res.statusCode !== 200){ return reject(new Error(`HTTP response status code: ${res.statusCode}`)) }
           res.setEncoding('utf8')
           res.on('data', (chunk) => { data += chunk })
           res.on('end', () => { resolve(data) })
