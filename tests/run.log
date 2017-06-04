@@ -35,3 +35,39 @@ newest release of Node.js:
 ---------------------------------------
 v8.0.0
 
+---------------------------------------
+redirecting..
+  from:
+    http://github.com/warren-bank/node-denodeify/raw/master/package.json
+  to:
+    https://github.com/warren-bank/node-denodeify/raw/master/package.json
+
+---------------------------------------
+redirecting..
+  from:
+    https://github.com/warren-bank/node-denodeify/raw/master/package.json
+  to:
+    https://raw.githubusercontent.com/warren-bank/node-denodeify/master/package.json
+
+---------------------------------------
+URL:
+  https://raw.githubusercontent.com/warren-bank/node-denodeify/master/package.json
+
+response data:
+---------------------------------------
+{
+  "name": "@warren-bank/node-denodeify",
+  "version": "1.0.5",
+  "main": "denodeify.js",
+  "description": "wrap Function with Proxy, proxied call returns Promise",
+  "author": "Warren Bank (https://github.com/warren-bank)",
+  "license": "GPL-2.0",
+  "dependencies": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/warren-bank/node-denodeify"
+  }
+}
+
+

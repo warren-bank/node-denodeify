@@ -79,11 +79,14 @@ const denodeify_net_request = function(fwcb, ctx){
           {},
           {
             // default user-configurable option values
-            validate_status_code: function(code){
+            validate_status_code: function(code, headers){
               var error
               if (code !== 200){
                 error = new Error(`HTTP response status code: ${code}`)
                 error.statusCode = code
+                if (headers && headers.location){
+                  error.location = headers.location
+                }
                 throw error
               }
             }
@@ -94,7 +97,7 @@ const denodeify_net_request = function(fwcb, ctx){
         cb = function(res){
           if (typeof configs.validate_status_code === 'function'){
             try {
-              configs.validate_status_code(res.statusCode)
+              configs.validate_status_code(res.statusCode, res.headers)
             }
             catch (error){
               return reject(error)

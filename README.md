@@ -68,14 +68,17 @@ npm install --save @warren-bank/node-denodeify
       * keys:
         * `validate_status_code`
           * type: {Function}
-          * input: {number} `code`
+          * input:
+            * {number} `code`
+            * {Object} `ResponseHeaders`
           * example:
-            * `{ validate_status_code: function(code){} }`
+            * `{ validate_status_code: function(code, ResponseHeaders){} }`
             * `{ validate_status_code: false }`
           * default value:
             * {Function}
               * throws `Error` if `code` is not 200
               * error.statusCode = code
+              * error.location = ResponseHeaders['location']
           * notes:
             * `Error` thrown in function is caught and passed to the Promise
             * a falsy {non-Function} value disables the option
@@ -148,6 +151,28 @@ http.get('http://nodejs.org/i.dont.exist/404', '', {validate_status_code: false}
 .catch((error) => {
   log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
 })
+
+// make a GET request, then follow all redirects
+const make_net_request = function(url){
+  var regex, proto
+  regex = /^https/i
+  proto = (regex.test(url)) ? https : http
+
+  proto.get(url)
+  .then((data) => {
+    log(sep.L, 'URL:', "\n  ", url, "\n\n", 'response data:', sep.R, data)
+  })
+  .catch((error) => {
+    if ((error.statusCode) && (error.statusCode >= 300) && (error.statusCode < 400) && (error.location)){
+      log(sep.L, 'redirecting..', "\n  ", 'from:', "\n    ", url, "\n  ", 'to:', "\n    ", error.location)
+      make_net_request(error.location)
+    }
+    else {
+      log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
+    }
+  })
+}
+make_net_request('http://github.com/warren-bank/node-denodeify/raw/master/package.json')
 ```
 
 #### Requirements:
