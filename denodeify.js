@@ -100,6 +100,7 @@ const denodeify_net_request = function(fwcb, ctx){
               configs.validate_status_code(res.statusCode, res.headers)
             }
             catch (error){
+              res.destroy()
               return reject(error)
             }
           }
