@@ -17,12 +17,14 @@ const https = {
   request: denodeify_net_request( require('https').request )
 }
 
+const sep = "\n" + Array(40).join('-') + "\n"
+
 fs.readFile('/etc/hosts', 'utf8')
 .then((data) => {
-  console.log('passwd:', data)
+  console.log([sep, '"hosts" file contents:', sep, data].join(''))
 })
 .catch((error) => {
-  console.log('Error:', error.message)
+  console.log([sep, 'Error:', sep, error.message].join())
 })
 
 http.get('http://nodejs.org/dist/index.json')
@@ -30,8 +32,8 @@ http.get('http://nodejs.org/dist/index.json')
   var all_releases, newest_release
   all_releases = JSON.parse(data)
   newest_release = all_releases.length ? all_releases[0] : {}
-  console.log('newest release of Node.js:', newest_release.version)
+  console.log([sep, 'newest release of Node.js:', sep, newest_release.version].join(''))
 })
 .catch((error) => {
-  console.log('Error:', error)
+  console.log([sep, 'Error:', sep, error.message].join(''))
 })
