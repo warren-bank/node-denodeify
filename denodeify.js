@@ -6,11 +6,11 @@ const querystring = require('querystring')
  * Characteristics of Function:
  *   - final input parameter is a callback function(error, result)
  * Changes to Signature of Function:
- *   - drops the final input parameter
- *   - returns a Promise
+ *   - remove the final input parameter
+ *   - return a Promise
  * @param {Function} fwcb    function with callback
  * @param {Object} ctx       'this' context
- * @return {Object}          Proxy
+ * @return {Proxy}
  */
 const denodeify = function(fwcb, ctx){
   var handler, proxy
@@ -37,30 +37,23 @@ const denodeify = function(fwcb, ctx){
 }
 
 /**
- * Wrap Function (that makes a network request, returns a Request object, and accepts callback that takes a Response object) with Proxy that returns Promise
- * @param {Function} fwcb    function to make network request
- * @param {Object} ctx       'this' context
- * @return {Object}          Promise
- */
-
-/**
  * Wrap Function with Proxy.
  * Characteristics of Function:
  *   - makes a network request
  *     - returns a Request object
- *     - final input parameter is a callback function(Response object)
+ *     - final input parameter is a callback function(ResponseObject)
  *   - Request object is a writable stream
  *   - Response object is a readable stream
  * Changes to Signature of Function:
- *   - replaces the final input parameter:
- *     - drops callback function
- *     - adds (optional) POST data
+ *   - replace the final input parameter:
+ *     - remove callback function
+ *     - add (optional) PostData
  *       - string (ex: 'a=1&b-2')
  *       - object (ex: {a:1,b:2})
  *   - returns a Promise
  * @param {Function} fwcb    function with callback
  * @param {Object} ctx       'this' context
- * @return {Object}          Proxy
+ * @return {Proxy}
  */
 const denodeify_net_request = function(fwcb, ctx){
   var handler, proxy
