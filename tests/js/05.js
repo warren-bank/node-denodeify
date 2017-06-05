@@ -1,20 +1,13 @@
 #!/usr/bin/env node
 
-const {denodeify, denodeify_net_request} = require('../../denodeify')
-
-const fs = {
-  readFile: denodeify( require('fs').readFile ),
-  writeFile: denodeify( require('fs').writeFile )
-}
+const {denodeify_net_request} = require('../../denodeify')
 
 const http = {
-  get: denodeify_net_request( require('http').get ),
-  request: denodeify_net_request( require('http').request )
+  get: denodeify_net_request( require('http').get )
 }
 
 const https = {
-  get: denodeify_net_request( require('https').get ),
-  request: denodeify_net_request( require('https').request )
+  get: denodeify_net_request( require('https').get )
 }
 
 const sep = {
@@ -46,7 +39,7 @@ const make_net_request = function(url){
       make_net_request(error.location)
     }
     else {
-      log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
+      log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`, "\n", `error.location === ${error.location}`)
     }
   })
 }

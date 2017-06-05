@@ -89,11 +89,12 @@ const denodeify_net_request = function(fwcb, ctx){
                 }
                 throw error
               }
-            }
+            },
+            binary: false
           },
           config_options
         )
-        var data=''
+        var data=[]
         cb = function(res){
           if (typeof configs.validate_status_code === 'function'){
             try {
@@ -104,9 +105,19 @@ const denodeify_net_request = function(fwcb, ctx){
               return reject(error)
             }
           }
-          res.setEncoding('utf8')
-          res.on('data', (chunk) => { data += chunk })
-          res.on('end', () => { resolve(data) })
+          if (! configs.binary){
+            // Setting an encoding causes the stream data to be returned as strings of the specified encoding rather than as Buffer objects
+            res.setEncoding('utf8')
+          }
+          res.on('data', (chunk) => { data.push(chunk) })
+          res.on('end', () => {
+            var _data = configs.binary ? Buffer.concat(data) : data.join('')
+
+            res.destroy()
+            data = undefined
+
+            resolve(_data)
+          })
         }
         args = [req_options, cb]
         try {

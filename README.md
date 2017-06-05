@@ -66,6 +66,12 @@ npm install --save @warren-bank/node-denodeify
       * user-configurable options (with sane defaults)
       * acceptable format: {Object}
       * keys:
+        * `binary`
+          * type: {Boolean}
+          * default: `false`
+          * notes:
+            * if `false`: Promise resolves to a {string} (utf8 encoding)
+            * if `true`: Promise resolves to a {Buffer}
         * `validate_status_code`
           * type: {Function}
           * input:
@@ -144,7 +150,7 @@ http.get('http://nodejs.org/i.dont.exist/404')
   log(sep.L, 'imaginary URL contents:', sep.R, data)
 })
 .catch((error) => {
-  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
+  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`, "\n", `error.location === ${error.location}`)
 })
 
 // example: request to download a file that doesn't exist, disable status code validation, display the (HTML) data in the server Response
@@ -153,7 +159,23 @@ http.get('http://nodejs.org/i.dont.exist/404', '', {validate_status_code: false}
   log(sep.L, 'imaginary URL contents:', sep.R, data)
 })
 .catch((error) => {
-  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
+  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`, "\n", `error.location === ${error.location}`)
+})
+
+// example: request a binary file, obtain the response in a Buffer, save to disk
+https.get('https://codeload.github.com/warren-bank/node-denodeify/zip/master', '', {binary: true})
+.then((data) => {
+  var filename = 'denodeify.zip'
+  fs.writeFile(filename, data, 'binary')
+  .then(() => {
+    log(sep.L, 'Binary data file saved to:', sep.R, filename)
+  })
+  .catch((error) => {
+    log(sep.L, 'Error: Failed to save binary data file to:', sep.R, filename, sep.R, error.message)
+  })
+})
+.catch((error) => {
+  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`, "\n", `error.location === ${error.location}`)
 })
 
 // example: make a GET request, then follow all redirects
@@ -172,7 +194,7 @@ const make_net_request = function(url){
       make_net_request(error.location)
     }
     else {
-      log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
+      log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`, "\n", `error.location === ${error.location}`)
     }
   })
 }

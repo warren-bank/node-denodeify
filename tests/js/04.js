@@ -54,7 +54,7 @@ http.get('http://nodejs.org/i.dont.exist/404')
   log(sep.L, 'imaginary URL contents:', sep.R, data)
 })
 .catch((error) => {
-  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
+  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`, "\n", `error.location === ${error.location}`)
 })
 
 http.get('http://nodejs.org/i.dont.exist/404', '', {validate_status_code: false})
@@ -62,5 +62,5 @@ http.get('http://nodejs.org/i.dont.exist/404', '', {validate_status_code: false}
   log(sep.L, 'imaginary URL contents:', sep.R, data)
 })
 .catch((error) => {
-  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`)
+  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`, "\n", `error.location === ${error.location}`)
 })
