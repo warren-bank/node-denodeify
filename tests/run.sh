@@ -19,11 +19,11 @@ echo '######################################################################
 
 echo '---------------------------------------
 Test integrity of binary zip file:
-  > unzip -t denodeify.zip
+  > unzip -t denodeify.Buffer.zip
 ---------------------------------------' &>> "$log"
-unzip -t denodeify.zip  &>> "$log"
+unzip -t denodeify.Buffer.zip  &>> "$log"
 
-rm denodeify.zip
+rm denodeify.Buffer.zip
 
 echo '' &>> "$log"
 
@@ -34,11 +34,11 @@ echo '######################################################################
 
 echo '---------------------------------------
 Test integrity of binary zip file:
-  > unzip -t denodeify.zip
+  > unzip -t denodeify.Stream.zip
 ---------------------------------------' &>> "$log"
-unzip -t denodeify.zip  &>> "$log"
+unzip -t denodeify.Stream.zip  &>> "$log"
 
-rm denodeify.zip
+rm denodeify.Stream.zip
 
 echo '' &>> "$log"
 

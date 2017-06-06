@@ -26,7 +26,7 @@ const log = function(){
 // example: request a binary file, obtain the response in a Buffer, save to disk
 https.get('https://codeload.github.com/warren-bank/node-denodeify/zip/master', '', {binary: true})
 .then((data) => {
-  var filename = 'denodeify.zip'
+  var filename = 'denodeify.Buffer.zip'
   fs.writeFile(filename, data, 'binary')
   .then(() => {
     log(sep.L, 'Binary data Buffer saved to file:', sep.R, filename)
