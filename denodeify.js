@@ -54,7 +54,10 @@ const denodeify = function(fwcb, ctx){
  *       - object (ex: {a:1,b:2})
  *     - format of ConfigOptions:
  *       - object: {
- *           validate_status_code: function(code) // or falsy
+ *           validate_status_code: function(code), // Function or falsy. Enables throwing an Error, conditional on HTTP status code.
+ *           binary: false,                        // Boolean. `false` indicates that the Response stream should be text (utf8 encoding)
+ *           stream: false                         // Boolean. `false` indicates that the Response stream should be entirely buffered, and its final value (string or Buffer) returned when the Promise is resolved. `true` indicates that the Response stream should be returned when the Promise is resolved. In this case, it can be piped elsewhere. Doing so removes the need to buffer the entire data file in memory.
+ *                                                 //          (note: the "binary" option can be used in combination to set the encoding on the Response stream before it is returned. `{binary:true}` leaves the encoding undefined, which results in chunks of Buffer data.)
  *         }
  *   - returns a Promise
  * @param {Function} fwcb    function with callback
@@ -90,7 +93,8 @@ const denodeify_net_request = function(fwcb, ctx){
                 throw error
               }
             },
-            binary: false
+            binary: false,
+            stream: false
           },
           config_options
         )
@@ -109,15 +113,20 @@ const denodeify_net_request = function(fwcb, ctx){
             // Setting an encoding causes the stream data to be returned as strings of the specified encoding rather than as Buffer objects
             res.setEncoding('utf8')
           }
-          res.on('data', (chunk) => { data.push(chunk) })
-          res.on('end', () => {
-            var _data = configs.binary ? Buffer.concat(data) : data.join('')
+          if (configs.stream){
+            resolve(res)
+          }
+          else {
+            res.on('data', (chunk) => { data.push(chunk) })
+            res.on('end', () => {
+              var _data = configs.binary ? Buffer.concat(data) : data.join('')
 
-            res.destroy()
-            data = undefined
+              res.destroy()
+              data = undefined
 
-            resolve(_data)
-          })
+              resolve(_data)
+            })
+          }
         }
         args = [req_options, cb]
         try {

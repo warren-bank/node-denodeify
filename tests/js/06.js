@@ -29,10 +29,10 @@ https.get('https://codeload.github.com/warren-bank/node-denodeify/zip/master', '
   var filename = 'denodeify.zip'
   fs.writeFile(filename, data, 'binary')
   .then(() => {
-    log(sep.L, 'Binary data file saved to:', sep.R, filename)
+    log(sep.L, 'Binary data Buffer saved to file:', sep.R, filename)
   })
   .catch((error) => {
-    log(sep.L, 'Error: Failed to save binary data file to:', sep.R, filename, sep.R, error.message)
+    log(sep.L, 'Error: Failed to save binary data Buffer to file:', sep.R, filename, sep.R, error.message)
   })
 })
 .catch((error) => {

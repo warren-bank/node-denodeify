@@ -70,8 +70,14 @@ npm install --save @warren-bank/node-denodeify
           * type: {Boolean}
           * default: `false`
           * notes:
-            * if `false`: Promise resolves to a {string} (utf8 encoding)
-            * if `true`: Promise resolves to a {Buffer}
+            * if `false`: data is read into a {string} (utf8 encoding)
+            * if `true`: data is read into a {Buffer}
+        * `stream`
+          * type: {Boolean}
+          * default: `false`
+          * notes:
+            * if `false`: Promise resolves to a buffered data structure ({Buffer} or {string}) that contains the entire data file in memory
+            * if `true`: Promise resolves to a Readable stream, chunks of data ({Buffer} or {string}) can be retrieved as they become available
         * `validate_status_code`
           * type: {Function}
           * input:
@@ -97,7 +103,9 @@ const {denodeify, denodeify_net_request} = require('@warren-bank/node-denodeify'
 
 const fs = {
   readFile: denodeify( require('fs').readFile ),
-  writeFile: denodeify( require('fs').writeFile )
+  writeFile: denodeify( require('fs').writeFile ),
+
+  createWriteStream: require('fs').createWriteStream
 }
 
 const http = {
@@ -168,11 +176,30 @@ https.get('https://codeload.github.com/warren-bank/node-denodeify/zip/master', '
   var filename = 'denodeify.zip'
   fs.writeFile(filename, data, 'binary')
   .then(() => {
-    log(sep.L, 'Binary data file saved to:', sep.R, filename)
+    log(sep.L, 'Binary data Buffer saved to file:', sep.R, filename)
   })
   .catch((error) => {
-    log(sep.L, 'Error: Failed to save binary data file to:', sep.R, filename, sep.R, error.message)
+    log(sep.L, 'Error: Failed to save binary data Buffer to file:', sep.R, filename, sep.R, error.message)
   })
+})
+.catch((error) => {
+  log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`, "\n", `error.location === ${error.location}`)
+})
+
+// example: request a binary file, obtain the response in a Readable stream, save to disk via a pipe
+https.get('https://codeload.github.com/warren-bank/node-denodeify/zip/master', '', {binary: true, stream: true})
+.then((stream) => {
+  var filename = 'denodeify.zip'
+  try {
+    stream
+      .pipe( fs.createWriteStream(filename) )
+      .on('finish', () => {
+        log(sep.L, 'Binary data stream saved to file:', sep.R, filename)
+      })
+  }
+  catch(error){
+    log(sep.L, 'Error: Failed to save binary data stream to file:', sep.R, filename, sep.R, error.message)
+  }
 })
 .catch((error) => {
   log(sep.L, 'Error:', sep.R, error.message, "\n", `error.statusCode === ${error.statusCode}`, "\n", `error.location === ${error.location}`)
@@ -200,6 +227,11 @@ const make_net_request = function(url){
 }
 make_net_request('http://github.com/warren-bank/node-denodeify/raw/master/package.json')
 ```
+
+#### Fun Fact:
+
+* the previous example: "_make a GET request, then follow all redirects_"<br>
+  inspired the library: [node-request](https://github.com/warren-bank/node-request)
 
 #### Requirements:
 
