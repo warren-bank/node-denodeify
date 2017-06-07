@@ -78,6 +78,10 @@ const denodeify_net_request = function(fwcb, ctx){
         if (typeof POST_data === 'object'){
           POST_data = querystring.stringify(POST_data)
         }
+        if (POST_data){
+          if (! req_options.headers) req_options.headers = {}
+          req_options.headers['Content-Length'] = Buffer.byteLength(POST_data, 'utf8')
+        }
         var configs = Object.assign(
           {},
           {
