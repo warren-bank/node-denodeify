@@ -18,9 +18,20 @@ const denodeify = function(fwcb, ctx){
     apply(_fwcb, _ctx, _args){
       return new Promise((resolve, reject) => {
         var cb, args
-        cb = function(error, result){
+        cb = function(error, ...result){
           if (error) reject(error)
-          else resolve(result)
+          else {
+            // Promise can only resolve a single value!
+            // This is NOT valid:
+            //     resolve(...result)
+            // If multiple values are passed to the callback function,
+            // then resolve them in an Array,
+            // and use destructuring to retrieve them later:
+            //     .then(([arg1, arg2, arg3, ...args]) => {})
+            if (! result || (result.length === 0)) resolve(undefined)
+            else if (result.length === 1) resolve(result[0])
+            else resolve(result)
+          }
         }
         args = [..._args, cb]
         try {
