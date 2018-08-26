@@ -80,7 +80,7 @@ const denodeify_net_request = function(fwcb, ctx){
   handler = {
     apply(_fwcb, _ctx, _args){
       return new Promise((resolve, reject) => {
-        var cb, args
+        var cb, args, error_handler
         var req
         var [req_options, POST_data='', config_options={}] = _args
         if (typeof req_options === 'string'){
@@ -144,14 +144,22 @@ const denodeify_net_request = function(fwcb, ctx){
           }
         }
         args = [req_options, cb]
+        error_handler = (error) => {
+          if ((error.code === 'HPE_INVALID_CONSTANT') && error.bytesParsed) {
+            // ignore
+          }
+          else {
+            reject(error)
+          }
+        }
         try {
           req = Reflect.apply(fwcb, (ctx || _ctx || null), args)
-          req.on('error', (error) => { reject(error) })
+          req.on('error', error_handler)
           if (POST_data) req.write(POST_data)
           req.end()
         }
         catch(error){
-          reject(error)
+          error_handler(error)
         }
       })
     }
