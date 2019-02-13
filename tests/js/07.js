@@ -30,7 +30,7 @@ https.get('https://codeload.github.com/warren-bank/node-denodeify/zip/master', '
   stream
     .pipe( fs.createWriteStream(filename) )
     .on('finish', () => {
-      log(sep.L, 'Binary data Stream saved to file:', sep.R, filename)
+      log(sep.L, 'Binary data Stream saved to file:', sep.R, filename, "\n\n", 'response headers:', sep.R, JSON.stringify(stream.headers, null, 2))
     })
     .on('error', (error) => {
       log(sep.L, 'Error: Failed to save binary data Stream to file:', sep.R, filename, sep.R, error.message)

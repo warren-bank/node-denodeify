@@ -70,13 +70,13 @@ npm install --save @warren-bank/node-denodeify
           * type: {Boolean}
           * default: `false`
           * notes:
-            * if `false`: data is read into a {string} (utf8 encoding)
+            * if `false`: data is read into a {String} (utf8 encoding)
             * if `true`: data is read into a {Buffer}
         * `stream`
           * type: {Boolean}
           * default: `false`
           * notes:
-            * if `false`: Promise resolves to a buffered data structure ({Buffer} or {string}) that contains the entire data file in memory
+            * if `false`: Promise resolves to a buffered data structure ({Buffer} or {String}) that contains the entire data file in memory
             * if `true`: Promise resolves to a Readable stream, chunks of data ({Buffer} or {string}) can be retrieved as they become available
         * `validate_status_code`
           * type: {Function}
@@ -95,6 +95,13 @@ npm install --save @warren-bank/node-denodeify
             * `Error` thrown in function is caught and passed to the Promise
             * a falsy {non-Function} value disables the option
   * output: Promise
+    * depending on `configs`, the resolved value can be any of the following data types:
+      * String (object)
+      * Buffer
+      * [http.IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage) Readable stream
+    * all data types are normalized to include the following object attributes:
+      * "headers"
+        * Object containing [HTTP response headers](https://nodejs.org/api/http.html#http_message_headers)
 
 #### Example:
 

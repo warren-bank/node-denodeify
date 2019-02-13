@@ -134,7 +134,9 @@ const denodeify_net_request = function(fwcb, ctx){
           else {
             res.on('data', (chunk) => { data.push(chunk) })
             res.on('end', () => {
-              var _data = configs.binary ? Buffer.concat(data) : data.join('')
+              var _data
+              _data         = configs.binary ? Buffer.concat(data) : new String(data.join(''))
+              _data.headers = {...res.headers}
 
               res.destroy()
               data = undefined

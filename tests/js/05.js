@@ -31,7 +31,7 @@ const make_net_request = function(url){
 
   proto.get(url)
   .then((data) => {
-    log(sep.L, 'URL:', "\n  ", url, "\n\n", 'response data:', sep.R, data)
+    log(sep.L, 'URL:', "\n  ", url, "\n\n", 'response headers:', sep.R, JSON.stringify(data.headers, null, 2), "\n\n", 'response data:', sep.R, data)
   })
   .catch((error) => {
     if ((error.statusCode) && (error.statusCode >= 300) && (error.statusCode < 400) && (error.location)){
