@@ -86,12 +86,31 @@ const denodeify_net_request = function(fwcb, ctx){
         if (typeof req_options === 'string'){
           req_options = url.parse(req_options)
         }
+        if (req_options.headers) {
+          if (! req_options.headers instanceof Object){
+            delete req_options.headers
+          }
+          else {
+            const normalized_headers = {}
+            let old_key, new_key, value
+            for (old_key in req_options.headers){
+              new_key = old_key.toLowerCase()
+              value   = req_options.headers[old_key]
+              normalized_headers[new_key] = value
+            }
+            req_options.headers = normalized_headers
+          }
+        }
         if (typeof POST_data === 'object'){
           POST_data = querystring.stringify(POST_data)
+
+          if (req_options.headers) req_options.headers['content-type'] = undefined
         }
         if (POST_data){
           if (! req_options.headers) req_options.headers = {}
-          req_options.headers['Content-Length'] = Buffer.byteLength(POST_data, 'utf8')
+          req_options.headers['content-length'] = Buffer.byteLength(POST_data, 'utf8')
+
+          if (! req_options.headers['content-type']) req_options.headers['content-type'] = 'application/x-www-form-urlencoded'
         }
         var configs = Object.assign(
           {},
