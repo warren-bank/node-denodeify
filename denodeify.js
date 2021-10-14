@@ -101,10 +101,10 @@ const denodeify_net_request = function(fwcb, ctx){
             req_options.headers = normalized_headers
           }
         }
-        if (typeof POST_data === 'object'){
+        if (POST_data && (typeof POST_data === 'object')){
           POST_data = querystring.stringify(POST_data)
 
-          if (req_options.headers) req_options.headers['content-type'] = undefined
+          if (req_options.headers) delete req_options.headers['content-type']
         }
         if (POST_data){
           if (! req_options.headers) req_options.headers = {}
