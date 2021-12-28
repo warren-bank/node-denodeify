@@ -1,3 +1,4 @@
+const {Buffer} = require('buffer')
 const url = require('url')
 const querystring = require('querystring')
 
@@ -101,16 +102,31 @@ const denodeify_net_request = function(fwcb, ctx){
             req_options.headers = normalized_headers
           }
         }
-        if (POST_data && (typeof POST_data === 'object')){
-          POST_data = querystring.stringify(POST_data)
-
-          if (req_options.headers) delete req_options.headers['content-type']
-        }
-        if (POST_data){
+        if (POST_data) {
           if (! req_options.headers) req_options.headers = {}
-          req_options.headers['content-length'] = Buffer.byteLength(POST_data, 'utf8')
 
-          if (! req_options.headers['content-type']) req_options.headers['content-type'] = 'application/x-www-form-urlencoded'
+          if (POST_data instanceof Buffer) {
+            req_options.headers['content-length'] = POST_data.length
+
+            if (! req_options.headers['content-type']) req_options.headers['content-type'] = 'application/octet-stream'
+          }
+          else {
+            if (POST_data instanceof Object) {
+              if (req_options.headers['content-type'] === 'application/json') {
+                POST_data = JSON.stringify(POST_data)
+              }
+              else {
+                POST_data = querystring.stringify(POST_data)
+
+                delete req_options.headers['content-type']
+              }
+            }
+            if (typeof POST_data === 'string') {
+              req_options.headers['content-length'] = Buffer.byteLength(POST_data, 'utf8')
+
+              if (! req_options.headers['content-type']) req_options.headers['content-type'] = 'application/x-www-form-urlencoded'
+            }
+          }
         }
         var configs = Object.assign(
           {},
