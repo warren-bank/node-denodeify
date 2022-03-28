@@ -1,6 +1,7 @@
-const {Buffer} = require('buffer')
-const url = require('url')
+const {Buffer}    = require('buffer')
 const querystring = require('querystring')
+const stream      = require('stream')
+const url         = require('url')
 
 /**
  * Wrap Function with Proxy.
@@ -64,6 +65,8 @@ const denodeify = function(fwcb, ctx){
  *     - format of PostData:
  *       - string (ex: 'a=1&b-2')
  *       - object (ex: {a:1,b:2})
+ *       - Buffer
+ *       - Readable stream
  *     - format of ConfigOptions:
  *       - object: {
  *           validate_status_code: function(code), // Function or falsy. Enables throwing an Error, conditional on HTTP status code.
@@ -105,7 +108,10 @@ const denodeify_net_request = function(fwcb, ctx){
         if (POST_data) {
           if (! req_options.headers) req_options.headers = {}
 
-          if (POST_data instanceof Buffer) {
+          if (POST_data instanceof stream.Readable) {
+            if (! req_options.headers['content-type']) req_options.headers['content-type'] = 'application/octet-stream'
+          }
+          else if (POST_data instanceof Buffer) {
             req_options.headers['content-length'] = POST_data.length
 
             if (! req_options.headers['content-type']) req_options.headers['content-type'] = 'application/octet-stream'
@@ -192,7 +198,12 @@ const denodeify_net_request = function(fwcb, ctx){
         try {
           req = Reflect.apply(fwcb, (ctx || _ctx || null), args)
           req.on('error', error_handler)
-          if (POST_data) req.write(POST_data)
+          if (POST_data) {
+            if (POST_data instanceof stream.Readable)
+              POST_data.pipe(req)
+            else
+              req.write(POST_data)
+          }
           req.end()
         }
         catch(error){
