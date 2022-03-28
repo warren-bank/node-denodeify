@@ -199,12 +199,21 @@ const denodeify_net_request = function(fwcb, ctx){
           req = Reflect.apply(fwcb, (ctx || _ctx || null), args)
           req.on('error', error_handler)
           if (POST_data) {
-            if (POST_data instanceof stream.Readable)
+            if (POST_data instanceof stream.Readable) {
               POST_data.pipe(req)
-            else
+
+              POST_data.on('end',   () => {req.end()})
+              POST_data.on('close', () => {req.end()})
+              POST_data.on('error', () => {req.end()})
+            }
+            else {
               req.write(POST_data)
+              req.end()
+            }
           }
-          req.end()
+          else {
+            req.end()
+          }
         }
         catch(error){
           error_handler(error)
