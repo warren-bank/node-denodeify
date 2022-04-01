@@ -3,6 +3,8 @@ const querystring = require('querystring')
 const stream      = require('stream')
 const url         = require('url')
 
+const {MultipartStream} = require('./lib/multipart')
+
 /**
  * Wrap Function with Proxy.
  * Characteristics of Function:
@@ -15,12 +17,10 @@ const url         = require('url')
  * @return {Proxy}
  */
 const denodeify = function(fwcb, ctx){
-  var handler, proxy
-  handler = {
+  const handler = {
     apply(_fwcb, _ctx, _args){
       return new Promise((resolve, reject) => {
-        var cb, args
-        cb = function(error, ...result){
+        const cb = function(error, ...result){
           if (error) reject(error)
           else {
             // Promise can only resolve a single value!
@@ -35,7 +35,7 @@ const denodeify = function(fwcb, ctx){
             else resolve(result)
           }
         }
-        args = [..._args, cb]
+        const args = [..._args, cb]
         try {
           Reflect.apply(fwcb, (ctx || _ctx || null), args)
         }
@@ -45,7 +45,7 @@ const denodeify = function(fwcb, ctx){
       })
     }
   }
-  proxy = new Proxy(fwcb, handler)
+  const proxy = new Proxy(fwcb, handler)
   return proxy
 }
 
@@ -67,6 +67,14 @@ const denodeify = function(fwcb, ctx){
  *       - object (ex: {a:1,b:2})
  *       - Buffer
  *       - Readable stream
+ *       - object: {name, value}
+ *           name: string
+ *           value: string || number || Buffer || object: {file, filename, mime}
+ *               file:     Readable stream
+ *               filename: string
+ *                         absolute filepath, or (if file) basename only
+ *               mime:     string
+ *                         content-type of file/filename
  *     - format of ConfigOptions:
  *       - object: {
  *           validate_status_code: function(code), // Function or falsy. Enables throwing an Error, conditional on HTTP status code.
@@ -80,13 +88,11 @@ const denodeify = function(fwcb, ctx){
  * @return {Proxy}
  */
 const denodeify_net_request = function(fwcb, ctx){
-  var handler, proxy
-  handler = {
+  const handler = {
     apply(_fwcb, _ctx, _args){
       return new Promise((resolve, reject) => {
-        var cb, args, error_handler
-        var req
-        var [req_options, POST_data='', config_options={}] = _args
+        let [req_options, POST_data='', config_options={}] = _args
+        let multipart
         if (typeof req_options === 'string'){
           req_options = url.parse(req_options)
         }
@@ -108,7 +114,19 @@ const denodeify_net_request = function(fwcb, ctx){
         if (POST_data) {
           if (! req_options.headers) req_options.headers = {}
 
-          if (POST_data instanceof stream.Readable) {
+          if (Array.isArray(POST_data)) {
+            POST_data = POST_data.filter(part => part && (part instanceof Object) && part.name && part.value && (typeof part.name === 'string'))
+
+            if (POST_data.length) {
+              multipart = createMultipartStream()
+
+              req_options.headers['content-type'] = multipart.contentType(null, 'multipart/form-data')
+            }
+            else {
+              POST_data = ''
+            }
+          }
+          else if (POST_data instanceof stream.Readable) {
             if (! req_options.headers['content-type']) req_options.headers['content-type'] = 'application/octet-stream'
           }
           else if (POST_data instanceof Buffer) {
@@ -134,14 +152,13 @@ const denodeify_net_request = function(fwcb, ctx){
             }
           }
         }
-        var configs = Object.assign(
+        const configs = Object.assign(
           {},
           {
             // default user-configurable option values
             validate_status_code: function(code, headers){
-              var error
               if (code !== 200){
-                error = new Error(`HTTP response status code: ${code}`)
+                const error = new Error(`HTTP response status code: ${code}`)
                 error.statusCode = code
                 if (headers && headers.location){
                   error.location = headers.location
@@ -154,8 +171,8 @@ const denodeify_net_request = function(fwcb, ctx){
           },
           config_options
         )
-        var data=[]
-        cb = function(res){
+        let data=[]
+        const cb = function(res){
           if (typeof configs.validate_status_code === 'function'){
             try {
               configs.validate_status_code(res.statusCode, res.headers)
@@ -175,8 +192,7 @@ const denodeify_net_request = function(fwcb, ctx){
           else {
             res.on('data', (chunk) => { data.push(chunk) })
             res.on('end', () => {
-              var _data
-              _data         = configs.binary ? Buffer.concat(data) : new String(data.join(''))
+              const _data   = configs.binary ? Buffer.concat(data) : new String(data.join(''))
               _data.headers = {...res.headers}
 
               res.destroy()
@@ -186,8 +202,8 @@ const denodeify_net_request = function(fwcb, ctx){
             })
           }
         }
-        args = [req_options, cb]
-        error_handler = (error) => {
+        const args = [req_options, cb]
+        const error_handler = (error) => {
           if ((error.code === 'HPE_INVALID_CONSTANT') && error.bytesParsed) {
             // ignore
           }
@@ -196,10 +212,59 @@ const denodeify_net_request = function(fwcb, ctx){
           }
         }
         try {
-          req = Reflect.apply(fwcb, (ctx || _ctx || null), args)
+          const req = Reflect.apply(fwcb, (ctx || _ctx || null), args)
           req.on('error', error_handler)
           if (POST_data) {
-            if (POST_data instanceof stream.Readable) {
+            if (Array.isArray(POST_data)) {
+              multipart.pipe(req)
+
+              for (let i=0; i < POST_data.length; i++) {
+                const part = POST_data[i]
+
+                if (
+                    ('number' === typeof part.value)
+                 || ('string' === typeof part.value)
+                 || Buffer.isBuffer(part.value)
+                ) {
+                  const headers = {'Content-Disposition': `form-data; name="${ encodeURIComponent(part.name) }"`}
+
+                  multipart.write(headers, part.value)
+                  continue
+                }
+
+                if (part.value instanceof Object) {
+                  const _value = {...part.value}
+
+                  if (_value.file && !(_value.file instanceof stream.Readable))
+                    delete _value.file
+                  if (_value.filename && !('string' === typeof _value.filename))
+                    delete _value.filename
+
+                  if (_value.file || _value.filename) {
+                    const details = {
+                      headers:  {'Content-Disposition': `form-data; name="${ encodeURIComponent(part.name) }"`},
+                      file:     _value.file     || null,
+                      filename: _value.filename || null
+                    }
+
+                    if (!details.headers['content-type'] && (_value['mime'] || _value['mime-type'] || _value['content-type']))
+                      details.headers['content-type'] = _value['mime'] || _value['mime-type'] || _value['content-type']
+
+                    if (!details.headers['content-type'] && _value.headers && (_value.headers instanceof Object) && _value.headers['content-type'])
+                      details.headers['content-type'] = _value.headers['content-type']
+
+                    if (!details.headers['content-type'] && details.file && !details.filename)
+                      details.headers['content-type'] = 'application/octet-stream'
+
+                    multipart.writeFile(details)
+                    continue
+                  }
+                }
+              }
+
+              multipart.end(() => {req.end()})
+            }
+            else if (POST_data instanceof stream.Readable) {
               POST_data.pipe(req)
 
               POST_data.on('end',   () => {req.end()})
@@ -221,8 +286,21 @@ const denodeify_net_request = function(fwcb, ctx){
       })
     }
   }
-  proxy = new Proxy(fwcb, handler)
+  const proxy = new Proxy(fwcb, handler)
   return proxy
+}
+
+// customized helper
+const createMultipartStream = function createMultipartStream(){
+  let prefix = ''
+  while (prefix.length < 20) {
+    prefix += Math.random().toString(36).slice(2)
+  }
+  prefix = Array(10 + 1 - 2).join('-') + 'denodeify-' + prefix
+
+  const options = {prefix}
+
+  return new MultipartStream(options)
 }
 
 module.exports = {denodeify, denodeify_net_request}

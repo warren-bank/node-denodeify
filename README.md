@@ -58,10 +58,51 @@ npm install --save @warren-bank/node-denodeify
 * Changes to signature of Function (via the Proxy):
   * input: `(RequestOptions[, PostData, configs])`
     * `PostData`
-      * key/value pairs written to Request object
-      * acceptable formats:
-        * string (ex: `'a=1&b-2'`)
-        * object (ex: `{a:1,b:2}`)
+      * type: {string} | {Object} | {Buffer} | {stream.Readable} | {Array&lt;Object>}
+      * {string} value
+        * when _Content-Type_ header is undefined
+          * _Content-Type_ header is given the value: _'application/x-www-form-urlencoded'_
+      * {Object} value
+        * is serialized to a {string} value based on the value of _Content-Type_ header
+          * _'application/json'_:
+            * converted to JSON
+          * otherwise:
+            * converted to querystring format
+            * ex: `"a=1&b=2"`
+        * when _Content-Type_ header is undefined
+          * _Content-Type_ header is given the value: _'application/x-www-form-urlencoded'_
+      * {Buffer} | {stream.Readable} values
+        * when _Content-Type_ header is undefined
+          * _Content-Type_ header is given the value: _'application/octet-stream'_
+      * {Array&lt;Object>} value
+        * _Content-Type_ header is given the value: _'multipart/form-data'_
+        * {Object} value required attributes:
+          1. `name`
+             * type: {string}
+          2. `value`
+             * type: {string} | {number} | {Buffer} | {Object}
+             * {string} | {number} | {Buffer} values
+               * sent verbatim
+             * {Object} value attributes:
+               1. `file`
+                  * type: {stream.Readable}
+               2. `filename`
+                  * type: {string}
+                  * when `file` is undefined:
+                    * required
+                    * value is an absolute filepath to a file that exists and is readable
+                  * when `file` is defined:
+                    * optional
+                    * value only needs a filename
+               3. `mime` or `mime-type` or `content-type` or `headers.content-type`
+                  * type: {string}
+                  * prioritized as given, in descending order
+                  * highest priority value sets the _Content-Type_ header for the file
+                  * when no value is defined:
+                    * if `filename` is defined:
+                      * file extension in `filename` is used to infer the _Content-Type_ header for the file
+                    * otherwise:
+                      * _Content-Type_ header for the file is given the value: _'application/octet-stream'_
     * `configs`
       * user-configurable options (with sane defaults)
       * acceptable format: {Object}
@@ -100,8 +141,8 @@ npm install --save @warren-bank/node-denodeify
       * Buffer
       * [http.IncomingMessage](https://nodejs.org/api/http.html#http_class_http_incomingmessage) Readable stream
     * all data types are normalized to include the following object attributes:
-      * "headers"
-        * Object containing [HTTP response headers](https://nodejs.org/api/http.html#http_message_headers)
+      1. "headers"
+         * Object containing [HTTP response headers](https://nodejs.org/api/http.html#http_message_headers)
 
 #### Example:
 
