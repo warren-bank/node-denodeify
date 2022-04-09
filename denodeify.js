@@ -157,7 +157,7 @@ const denodeify_net_request = function(fwcb, ctx){
           {
             // default user-configurable option values
             validate_status_code: function(code, headers){
-              if (code !== 200){
+              if ((code < 200) || (code >= 300)){
                 const error = new Error(`HTTP response status code: ${code}`)
                 error.statusCode = code
                 if (headers && headers.location){
@@ -192,8 +192,9 @@ const denodeify_net_request = function(fwcb, ctx){
           else {
             res.on('data', (chunk) => { data.push(chunk) })
             res.on('end', () => {
-              const _data   = configs.binary ? Buffer.concat(data) : new String(data.join(''))
-              _data.headers = {...res.headers}
+              const _data      = configs.binary ? Buffer.concat(data) : new String(data.join(''))
+              _data.statusCode = res.statusCode
+              _data.headers    = {...res.headers}
 
               res.destroy()
               data = undefined
