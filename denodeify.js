@@ -160,6 +160,7 @@ const denodeify_net_request = function(fwcb, ctx){
               if ((code < 200) || (code >= 300)){
                 const error = new Error(`HTTP response status code: ${code}`)
                 error.statusCode = code
+                error.headers    = headers || {}
                 if (headers && headers.location){
                   error.location = headers.location
                 }
