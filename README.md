@@ -282,16 +282,18 @@ make_net_request('http://github.com/warren-bank/node-denodeify/raw/master/packag
 
 #### Requirements:
 
-* Node version: v6.4.0 (and higher)
+* Node.js version: v8.6.0 (and higher)
   * [ES6 support](http://node.green/)
-    * v0.12.18+: Promise
-    * v4.08.03+: Object shorthand methods
-    * v5.12.00+: spread operator
-    * v6.04.00+: Proxy constructor
-    * v6.04.00+: Proxy 'apply' handler
-    * v6.04.00+: Reflect.apply
-  * tested in:
-    * v7.9.0
+    * v0.12.18+: [Promise](https://node.green/#ES2015-built-ins-Promise)
+    * v4.08.03+: [Object shorthand methods](https://node.green/#ES2015-syntax-object-literal-extensions)
+    * v5.12.00+: [spread syntax for iterable objects](https://node.green/#ES2015-syntax-spread-syntax-for-iterable-objects)
+    * v6.04.00+: [rest parameters](https://node.green/#ES2015-syntax-rest-parameters)
+    * v6.04.00+: [destructuring, declarations](https://node.green/#ES2015-syntax-destructuring--declarations)
+    * v6.04.00+: [Proxy constructor](https://node.green/#ES2015-built-ins-Proxy)
+    * v6.04.00+: [Proxy 'apply' handler](https://node.green/#ES2015-built-ins-Proxy)
+    * v6.04.00+: [Reflect.apply](https://node.green/#ES2015-built-ins-Reflect)
+    * v7.10.01+: [async functions](https://node.green/#ES2017-features-async-functions)
+    * v8.06.00+: [object rest/spread properties](https://node.green/#ES2018-features-object-rest-spread-properties)
 * no external dependencies
 
 #### Legal:
